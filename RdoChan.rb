@@ -85,11 +85,11 @@ class Rhythmbox_db
   
   def add_unique_stations(radio_db, to_file)
     stations = get_station_list
-    puts "Stations in new data base:"
+    puts "\n\nStations in new data base:"
     stations.each {|station| puts station}
     pointers = radio_db.find_records("iradio")
     puts 
-    puts "Stations in old data base:"
+    puts "\n\nStations in old data base:"
     pointers.each do |location|
       start = location[0]
       stop = location[1]
@@ -105,14 +105,31 @@ class Rhythmbox_db
   
 end
 
- 
+
+
+def get_file_name(querry)
+  print querry + " (to abort type 'exit'):  "
+  name = gets.chomp
+  while !File.file?(name)
+    exit if name.downcase == "exit"
+    puts "File does not exist.  Enter a valid file or enter 'exit' to terminate:  "
+    name = gets.chomp
+  end
+  name
+end
+
  #Open rhythmbox data base files
-old_file = open("rhythmdb.xml", "r")
-new_file = open("newrhythmdb.xml", "r")
+ import_from = get_file_name("Old data base file to import radio stations from")
+ old_file = open(import_from, "r")
+ merge_with = get_file_name("New data base file to merge with")
+ new_file = open(merge_with, "r")
+ 
+#old_file = open("rhythmdb.xml", "r")
+#new_file = open("newrhythmdb.xml", "r")
 
  #Open temporary file to store old radio stations records and file for final merged data base
 radio_only_file = open("temp.xml", "w+")
-merged_file = open("mergedrhythmdb.xml", "a")
+merged_file = open("merged_rhythmdb.xml", "a")
 
  #Create data base objects
 import_db = Rhythmbox_db.new(old_file)
@@ -133,6 +150,7 @@ new_db.add_unique_stations(old_stations_db, merged_file)
 pointers = new_db.find_records("iradio")
 block_beginning = pointers.last[1] + 1
 new_db.copy_block(block_beginning, "eof", merged_file)
+puts "\n\nResult of imported radio stations merged with new Rhythmbox data base is in file 'merged_rhythmdb.xml'"
 
 old_file.close
 new_file.close
